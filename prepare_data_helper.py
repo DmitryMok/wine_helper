@@ -81,3 +81,7 @@ def get_gdrive_file_by_link(gdrive_link, new_file_name, show_progress=True):
     else:
       result = 'Successfull!'
     return print(result)
+
+#update 08.05
+def new_func():
+    return True
