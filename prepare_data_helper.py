@@ -6,6 +6,7 @@ import os
 import subprocess
 import re
 import numpy as np
+import cv2
 from IPython.display import clear_output
 
 def get_json_file(file_json: str):
@@ -78,7 +79,7 @@ def get_gdrive_file_by_link(gdrive_link, new_file_name, show_progress=True):
       result = 'Successfull!'
     return print(result)
 
-#update 08.05
+#update 08.05.2
 def xy2xywh(x1,x2,y1,y2):
   x, y = (x1 + x2) / 2, (y1 + y2) / 2
   w, h = x2 - x1, y2 - y1
@@ -134,19 +135,17 @@ def convert_SAjson2yolo(json_data,
       # copy image and save labels txt
       file_full_name_img = train_yolo_dir+'/images/'+train_val_dir+'/'+'img_{0:05d}.'.format(file_id)+file_name.split('.')[-1]
       file_full_name_lbl = train_yolo_dir+'/labels/'+train_val_dir+'/'+'img_{0:05d}.txt'.format(file_id)
-      np.savetxt(file_full_name_lbl, yolo_data)
 
       # save txt file with labels
-      with open(file_full_name_lbl, "w") as output:
-        output.write(str(yolo_data))
+      np.savetxt(file_full_name_lbl, yolo_data)
 
       # copy image and change its file name
-      result = os.system(f'cp "{original_img_dir}/{file_name}" {file_full_name_img}')
+      os.system(f'cp "{original_img_dir}/{file_name}" {file_full_name_img}')
 
   # check result
   len(json_data)-1
   print(f'In json were - {len(json_data)-1} files')
-  print(f'Conderted - {file_id} files')
+  print(f'Converted - {file_id} files')
   print('Saved images -', len(os.listdir(train_yolo_dir+'/images/'+train_val_dir)), 'files')
   print('Saved labels -', len(os.listdir(train_yolo_dir+'/labels/'+train_val_dir)), 'files')
 
