@@ -79,7 +79,7 @@ def get_gdrive_file_by_link(gdrive_link, new_file_name, show_progress=True):
       result = 'Successfull!'
     return print(result)
 
-#update 08.05.3
+#update 08.05.4
 def xy2xywh(x1,x2,y1,y2):
   x, y = (x1 + x2) / 2, (y1 + y2) / 2
   w, h = x2 - x1, y2 - y1
@@ -206,11 +206,11 @@ def visualize(image, bboxes, thickness=2, bbox_type='bbox'):
 
 def resize_image(img, width=300):
   # resize image
-  height = int(image.shape[0] * width/image.shape[1])
+  height = int(img.shape[0] * width/img.shape[1])
   dim = (width, height)
   
   # resize image
-  resized = cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
+  resized = cv2.resize(img, dim, interpolation = cv2.INTER_AREA)
 
   return resized
 
