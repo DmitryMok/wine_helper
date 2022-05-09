@@ -79,7 +79,7 @@ def get_gdrive_file_by_link(gdrive_link, new_file_name, show_progress=True):
       result = 'Successfull!'
     return print(result)
 
-#update 08.05.2
+#update 08.05.3
 def xy2xywh(x1,x2,y1,y2):
   x, y = (x1 + x2) / 2, (y1 + y2) / 2
   w, h = x2 - x1, y2 - y1
@@ -148,4 +148,70 @@ def convert_SAjson2yolo(json_data,
   print(f'Converted - {file_id} files')
   print('Saved images -', len(os.listdir(train_yolo_dir+'/images/'+train_val_dir)), 'files')
   print('Saved labels -', len(os.listdir(train_yolo_dir+'/labels/'+train_val_dir)), 'files')
+
+################################################################
+# visualisation functions
+################################################################
+BOX_COLOR = (255, 0, 0) # Red
+TEXT_COLOR = (40, 0, 0) # White
+pi = 3.1415926535
+
+
+def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox'):
+  '''
+  draw bbox on image
+  :param: bbox - bbox absolute coordinates
+  :return: same image with bbox
+  '''
+  x_cntr, y_cntr, w, h = map(int, bbox) # coordinates of centers and dimensions of boxes 
+  x_min, x_max, y_min, y_max = int(x_cntr - w/2), int(x_cntr + w/2), int(y_cntr - h/2), int(y_cntr + h/2)
+  center_coordinates = (x_cntr, y_cntr)
+
+  if bbox_type=='ellipse':
+    a, b = int(w/2), int(h/2)
+    axesLength = (a, b)
+    cv2.ellipse(img, center_coordinates, axesLength, angle=0, startAngle=0, endAngle=360, color=color, thickness=thickness)  #angle=0, startAngle=0, endAngle=360, 
+  elif bbox_type=='circle':
+    radius = int(sq ** 0.5 / 2)
+    cv2.circle(img, center_coordinates, radius, color=color, thickness=thickness)
+    pass
+  else:
+    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
+
+  # fsc = 0.8
+  # ((text_width, text_height), _) = cv2.getTextSize(diameter, cv2.FONT_HERSHEY_SIMPLEX, fsc, 1)    
+  # cv2.putText(
+  #     img,
+  #     text=diameter,
+  #     org=(x_cntr - int(text_width/2), y_cntr + int(0.5 * text_height)),
+  #     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+  #     fontScale=fsc, 
+  #     color=TEXT_COLOR, 
+  #     lineType=cv2.LINE_AA,
+  # )
+  return img  # image with bboxes
+
+
+def visualize(image, bboxes, thickness=2, bbox_type='bbox'):
+  img = image.copy()
+  bbxs = bboxes.copy()
+
+  # print(img.shape, len(bbxs))
+  if len(bbxs):
+    bbxs[:,[0,2]] = bbxs[:,[0,2]] * img.shape[1]
+    bbxs[:,[1,3]] = bbxs[:,[1,3]] * img.shape[0]
+  for bbox in bbxs:
+      img = visualize_bbox(img, bbox, thickness=thickness, bbox_type=bbox_type)
+  return img
+
+def resize_image(img, width=300):
+  # resize image
+  height = int(image.shape[0] * width/image.shape[1])
+  dim = (width, height)
+  
+  # resize image
+  resized = cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
+
+  return resized
+
 
