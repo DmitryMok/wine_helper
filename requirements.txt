@@ -1,0 +1,5 @@
+cairosvg==2.5.2
+ipython==8.3.0
+numpy==1.21.6
+opencv_contrib_python==4.1.2.30
+setuptools==57.4.0
