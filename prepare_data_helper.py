@@ -157,9 +157,9 @@ TEXT_COLOR = (40, 0, 0) # White
 pi = 3.1415926535
 
 
-def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox'):
+def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox', bbox_text = None, font_scale = 0.5):
   '''
-  draw bbox on image
+  Draw bbox on the image
   :param: bbox - bbox absolute coordinates
   :return: same image with bbox
   '''
@@ -178,21 +178,33 @@ def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox'):
   else:
     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color=color, thickness=thickness)
 
-  # fsc = 0.8
-  # ((text_width, text_height), _) = cv2.getTextSize(diameter, cv2.FONT_HERSHEY_SIMPLEX, fsc, 1)    
-  # cv2.putText(
-  #     img,
-  #     text=diameter,
-  #     org=(x_cntr - int(text_width/2), y_cntr + int(0.5 * text_height)),
-  #     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
-  #     fontScale=fsc, 
-  #     color=TEXT_COLOR, 
-  #     lineType=cv2.LINE_AA,
-  # )
+  if bbox_text:
+    text = str(bbox_text)
+    ((text_width, text_height), _) = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, 1)    
+    # Prints the text.    
+    img = cv2.rectangle(img, (x_cntr-text_width//2, y_cntr - int(40*font_scale)), (x_cntr + text_width//2, y_cntr), BOX_COLOR, -1)
+    # img = cv2.putText(img, label, (x1, y1 - 5),
+    #                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, text_color, 1)    
+    cv2.putText(
+        img,
+        text=text,
+        # org=(x_cntr - int(text_width/2), y_cntr + int(0.5 * text_height)),
+        org=(x_cntr-text_width//2, y_cntr-int(10*font_scale)),
+        fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+        fontScale=font_scale, 
+        color=TEXT_COLOR 
+        # lineType=cv2.LINE_AA,
+    )
   return img  # image with bboxes
 
 
-def visualize(image, bboxes, thickness=2, bbox_type='bbox'):
+def visualize(image, bboxes, thickness=2, bbox_type='bbox', bboxes_text = None, font_scale = 0.5):
+  '''
+  Draw bboxes on image
+  :param: bbox_type - ellipse, circle or bbox (default)
+  :bboxes_text: list of text to draw in the center of earch bboxes, int/float/string
+  :param: font_scale - font size
+  '''
   img = image.copy()
   bbxs = bboxes.copy()
 
@@ -200,8 +212,11 @@ def visualize(image, bboxes, thickness=2, bbox_type='bbox'):
   if len(bbxs):
     bbxs[:,[0,2]] = bbxs[:,[0,2]] * img.shape[1]
     bbxs[:,[1,3]] = bbxs[:,[1,3]] * img.shape[0]
-  for bbox in bbxs:
-      img = visualize_bbox(img, bbox, thickness=thickness, bbox_type=bbox_type)
+  for i,bbox in enumerate(bbxs):
+      if len(bboxes_text):
+        bbox_text=bboxes_text[i]
+        # print(bbox_text)
+      img = visualize_bbox(img, bbox, thickness=thickness, bbox_type=bbox_type, bbox_text=bbox_text, font_scale=font_scale)
   return img
 
 def resize_image(img, width=300):
@@ -214,4 +229,22 @@ def resize_image(img, width=300):
 
   return resized
 
-
+def draw_images_row(img_list, fig_size=22, titles=None):
+  '''
+  Draw images in line
+  :param: img_list - list of images (numpy)
+  :param: fig_size - width of line, int (default = 22)
+  :param: titles - list of titles (list of string)
+  '''
+  fig = plt.figure(figsize=(fig_size, int(fig_size*3*img_list[0].shape[1]/img_list[0].shape[1])+1))
+  plt.subplots_adjust(wspace=0, hspace=0)
+  rows = 1
+  columns = 3
+  if not titles:  titles=[str(i+1) for i in range(len(img_list))] # if title absant, it will be num
+  for i in range(0, len(img_list)):
+      # print(i+1)
+      fig.add_subplot(rows, columns, i+1)
+      plt.axis('off')
+      plt.title(titles[i])
+      plt.imshow(img_list[i])
+  plt.show()
