@@ -153,7 +153,7 @@ def convert_SAjson2yolo(json_data,
 # visualisation functions
 ################################################################
 BOX_COLOR = (255, 0, 0) # Red
-TEXT_COLOR = (40, 0, 0) # White
+TEXT_COLOR = (255, 255, 255) # White
 pi = 3.1415926535
 
 
