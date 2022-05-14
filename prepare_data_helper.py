@@ -198,7 +198,7 @@ def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox', bb
   return img  # image with bboxes
 
 
-def visualize(image, bboxes, thickness=2, bbox_type='bbox', bboxes_text = None, font_scale = 0.5):
+def visualize(image, bboxes, thickness=2, bbox_type='bbox', bboxes_text = [], font_scale = 0.5):
   '''
   Draw bboxes on image
   :param: bbox_type - ellipse, circle or bbox (default)
