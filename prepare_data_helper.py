@@ -202,7 +202,7 @@ def visualize(image, bboxes, thickness=2, bbox_type='bbox', bboxes_text = [], fo
   '''
   Draw bboxes on image
   :param: bbox_type - ellipse, circle or bbox (default)
-  :bboxes_text: list of text to draw in the center of earch bboxes, int/float/string
+  :param: bboxes_text - list of text to draw in the center of earch bboxes, int/float/string
   :param: font_scale - font size
   '''
   img = image.copy()
@@ -215,7 +215,8 @@ def visualize(image, bboxes, thickness=2, bbox_type='bbox', bboxes_text = [], fo
   for i,bbox in enumerate(bbxs):
       if len(bboxes_text):
         bbox_text=bboxes_text[i]
-        # print(bbox_text)
+      else:
+        bbox_text=[]  
       img = visualize_bbox(img, bbox, thickness=thickness, bbox_type=bbox_type, bbox_text=bbox_text, font_scale=font_scale)
   return img
 
