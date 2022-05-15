@@ -6,6 +6,7 @@ import os
 import subprocess
 import re
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 from IPython.display import clear_output
 
@@ -172,7 +173,7 @@ def visualize_bbox(img, bbox, color=BOX_COLOR, thickness=2, bbox_type='bbox', bb
     axesLength = (a, b)
     cv2.ellipse(img, center_coordinates, axesLength, angle=0, startAngle=0, endAngle=360, color=color, thickness=thickness)  #angle=0, startAngle=0, endAngle=360, 
   elif bbox_type=='circle':
-    radius = int(sq ** 0.5 / 2)
+    radius = int((w + h) / 4)
     cv2.circle(img, center_coordinates, radius, color=color, thickness=thickness)
     pass
   else:
@@ -249,3 +250,101 @@ def draw_images_row(img_list, fig_size=22, titles=None):
       plt.title(titles[i])
       plt.imshow(img_list[i])
   plt.show()
+
+#update 15.05.4
+  
+CROP_SIZE = 128 # размер обрезанного изображения
+CROP_MARGIN = 1.3 # размер полей по отношению к max стороне bbox
+
+# функция вырезает из исходного изображения фрагменты с keypoints/bbox
+# если bb=1 значит на вход подается готовый bbox, иначе key points
+def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0): 
+    '''
+    :param: kp_list - int, corner coordinates (xy), 
+    :param: rsz - int, resize to CROP_SIZE (0 - no resize), 
+    :param: dxy - [0:1], random offset (relate max(w,h)) 
+    '''
+    if bb:
+      bbxs = kp_list
+    else:
+      # координаты bbox вокруг keypoints
+      x_center, y_center, w, h = (max(kp_list[:,0])+min(kp_list[:,0]))/2, (max(kp_list[:,1])+min(kp_list[:,1]))/2, max(kp_list[:,0])-min(kp_list[:,0]), max(kp_list[:,1])-min(kp_list[:,1]) 
+      bbxs = np.array([x_center, y_center, w, h])[None, ...]
+    if len(bbxs):
+      kp_list[:,0] = kp_list[:,0] * img.shape[1]
+      kp_list[:,1] = kp_list[:,1] * img.shape[0]
+      bbxs[:,[0,2]] = bbxs[:,[0,2]] * img.shape[1]
+      bbxs[:,[1,3]] = bbxs[:,[1,3]] * img.shape[0]
+
+    x, y, w, h = bbxs[0]
+    cm, dx, dy = CROP_MARGIN, 0, 0  #константы будут изменены, если делать случайное смещение
+
+    # случайное смещение
+    if dxy:
+      cm = cm + (0.5-np.random.random())*dxy*2
+      dx = max(w,h) * dxy
+      dy = int(0.5*dx - r(dx))
+      dx = int(0.5*dx - r(dx))
+    # print(CROP_MARGIN, cm)
+    # размер окна вокруг bbox
+    dim = max(w,h) * CROP_MARGIN
+    x_min, x_max, y_min, y_max = int(x - dim/2)+dx, int(x + dim/2)+dx, int(y - dim/2)+dy, int(y + dim/2)+dy
+    # новые координаты keypoints
+    # print(kp_list[:,0], x_min)
+    kp_list[:,0], kp_list[:,1] = kp_list[:,0] - x_min, kp_list[:,1] - y_min
+    # оригинальное изображение
+    # print((x_min, y_min), (x_max, y_max))
+    if min(x_min, y_min)<0 or img.shape[1]<x_max or img.shape[0]<y_max:
+      cropped_img = crop_bbox(img, x_min, y_min, x_max, y_max)
+    else:
+      cropped_img = img[y_min:y_max,x_min:x_max,:][:,:,::-1]
+    # print(cropped_img.shape)
+    
+    new_bbox = []
+    for kp in kp_list:
+      new_bbox.append([kp[0], kp[1], 0.01, 0.01])
+
+    new_bbox = np.array(new_bbox) #[None, ...]
+    new_bbox[:,[0,2]] = new_bbox[:,[0,2]] / cropped_img.shape[1]
+    new_bbox[:,[1,3]] = new_bbox[:,[1,3]] / cropped_img.shape[0]
+
+    if rsz:
+      # transformed = transform(image=cropped_img, bboxes=bbxs, category_ids=category_ids[i:i+4])
+      cropped_img = cv2.resize(cropped_img, (CROP_SIZE,CROP_SIZE))
+
+    if show:
+      visualize(cropped_img, new_bbox)
+    # cv2_imshow(cropped_img)
+
+    return cropped_img, new_bbox[:,:2]
+
+# функция вырезает bbox и дополняет серым область, которая выходит за край изображения
+# на вход подается изображение и координаты, по которым надо вырезать фрагмент
+def crop_bbox(img, x_min, y_min, x_max, y_max):
+  '''
+  Function crops bbox from image
+  :param: img - numpy array
+  :param: x_min (x_max/y_min/y_max) - int, abs coordinates 
+  '''
+  h_cropped, w_cropped = y_max-y_min, x_max-x_min
+  blank_img = np.zeros((h_cropped, w_cropped, 3))+127
+  # определяем смещение за границу изображения
+  y_min_offset = max(0, -y_min)
+  y_max_offset = min(0, img.shape[0] - y_max)
+  x_min_offset = max(0, -x_min)
+  x_max_offset = min(0, img.shape[1] - x_max)
+  # сдвигаем координаты
+  y_min += y_min_offset
+  y_max += y_max_offset
+  x_min += x_min_offset
+  x_max += x_max_offset
+
+  blank_img[y_min_offset:h_cropped+y_max_offset,x_min_offset:w_cropped+x_max_offset,:] = img[y_min:y_max,x_min:x_max,:][:,:,::-1]
+
+  return blank_img  # изображение в формате RGB
+
+def r(val):
+  '''
+  Function generate random integer [0:val]
+  '''
+  return int(np.random.random() * val)
