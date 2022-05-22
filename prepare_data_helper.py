@@ -260,9 +260,11 @@ CROP_MARGIN = 1.3 # размер полей по отношению к max ст�
 # если bb=1 значит на вход подается готовый bbox, иначе key points
 def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0): 
     '''
+    Function cuts fragment with bbox or kp. Margin = CROP_MARGIN (default 1.3)
     :param: kp_list - int, corner coordinates (xy), 
     :param: rsz - int, resize to CROP_SIZE (0 - no resize), 
-    :param: dxy - [0:1], random offset (relate max(w,h)) 
+    :param: dxy - [0:1], random offset (relate max(w,h))
+    :param: bb - bounding box or key point, default bb=0 (key point)
     '''
     if bb:
       bbxs = kp_list
@@ -271,10 +273,10 @@ def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0):
       x_center, y_center, w, h = (max(kp_list[:,0])+min(kp_list[:,0]))/2, (max(kp_list[:,1])+min(kp_list[:,1]))/2, max(kp_list[:,0])-min(kp_list[:,0]), max(kp_list[:,1])-min(kp_list[:,1]) 
       bbxs = np.array([x_center, y_center, w, h])[None, ...]
     if len(bbxs):
-      kp_list[:,0] = kp_list[:,0] * img.shape[1]
-      kp_list[:,1] = kp_list[:,1] * img.shape[0]
       bbxs[:,[0,2]] = bbxs[:,[0,2]] * img.shape[1]
       bbxs[:,[1,3]] = bbxs[:,[1,3]] * img.shape[0]
+      # kp_list[:,0] = kp_list[:,0] * img.shape[1]
+      # kp_list[:,1] = kp_list[:,1] * img.shape[0]
 
     x, y, w, h = bbxs[0]
     cm, dx, dy = CROP_MARGIN, 0, 0  #константы будут изменены, если делать случайное смещение
@@ -302,7 +304,10 @@ def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0):
     
     new_bbox = []
     for kp in kp_list:
-      new_bbox.append([kp[0], kp[1], 0.01, 0.01])
+      if bb:
+        new_bbox.append([kp[0], kp[1], kp[2], kp[3]])
+      else:
+        new_bbox.append([kp[0], kp[1], 0.01, 0.01]) # 0.01 осталось от legacy, надо выпилить
 
     new_bbox = np.array(new_bbox) #[None, ...]
     new_bbox[:,[0,2]] = new_bbox[:,[0,2]] / cropped_img.shape[1]
@@ -310,13 +315,13 @@ def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0):
 
     if rsz:
       # transformed = transform(image=cropped_img, bboxes=bbxs, category_ids=category_ids[i:i+4])
-      cropped_img = cv2.resize(cropped_img, (CROP_SIZE,CROP_SIZE))
+      cropped_img = cv2.resize(cropped_img, (rsz,rsz))
 
     if show:
       visualize(cropped_img, new_bbox)
     # cv2_imshow(cropped_img)
 
-    return cropped_img, new_bbox[:,:2]
+    return cropped_img, [new_bbox[:,:2],new_bbox[:,:4]][bb] # для kp возвращаем только массив xy, для bbox - xywh
 
 # функция вырезает bbox и дополняет серым область, которая выходит за край изображения
 # на вход подается изображение и координаты, по которым надо вырезать фрагмент
