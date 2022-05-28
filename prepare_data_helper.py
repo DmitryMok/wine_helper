@@ -305,13 +305,16 @@ def crop_fragment_with_bbox(img, kp_list, rsz=CROP_SIZE, dxy=0.2, show=1, bb=0):
     new_bbox = []
     for kp in kp_list:
       if bb:
-        new_bbox.append([kp[0], kp[1], kp[2], kp[3]])
+        # new_bbox.append([kp[0], kp[1], kp[2], kp[3]])
+        new_bbox.append([x_min, y_min, dim, dim])
       else:
         new_bbox.append([kp[0], kp[1], 0.01, 0.01]) # 0.01 осталось от legacy, надо выпилить
 
     new_bbox = np.array(new_bbox) #[None, ...]
-    new_bbox[:,[0,2]] = new_bbox[:,[0,2]] / cropped_img.shape[1]
-    new_bbox[:,[1,3]] = new_bbox[:,[1,3]] / cropped_img.shape[0]
+    # new_bbox[:,[0,2]] = new_bbox[:,[0,2]] / cropped_img.shape[1]
+    # new_bbox[:,[1,3]] = new_bbox[:,[1,3]] / cropped_img.shape[0]
+    new_bbox[:,[0,2]] = new_bbox[:,[0,2]] / img.shape[1]
+    new_bbox[:,[1,3]] = new_bbox[:,[1,3]] / img.shape[0]
 
     if rsz:
       # transformed = transform(image=cropped_img, bboxes=bbxs, category_ids=category_ids[i:i+4])
