@@ -377,7 +377,7 @@ class DataSet:
 
   def get_stat(self):
     print('Папки с изображениями:\n')
-    commonpath = os.path.commonpath(ds.img_dirs)
+    commonpath = os.path.commonpath(self.img_dirs)
     print(commonpath) # общая часть папок, чтобы отобразить структуру
     # выводим информацию в каждой папке
     for img_dir in self.img_dirs:
@@ -387,11 +387,11 @@ class DataSet:
             len(img_lst), ', расширения: ', *{img_name.split('.')[-1] for img_name in img_lst if len(img_name.split('.'))>1},']', sep='')
 
     print('\n\nПапки с файлами разметки:\n')
-    commonpath = os.path.commonpath(ds.lbl_dirs)
+    commonpath = os.path.commonpath(self.lbl_dirs)
     print(commonpath) # общая часть папок, чтобы отобразить структуру
     # выводим информацию в каждой папке
     for lbl_dir in self.lbl_dirs:
       lbl_lst = os.listdir(lbl_dir)
       print('  |')
-      print('  +-- ',os.path.relpath(img_dir, start=commonpath), ' [кол-во файлов - ', 
-            len(lbl_lst), ', расширения: ', *{lbl_name.split('.')[-1] for lbl_name in lbl_lst if len(lbl_name.split('.'))>1},']', sep='')
+      print('  +-- ',os.path.relpath(lbl_dir, start=commonpath), ' [кол-во файлов - ', 
+            len([1 for lbl_name in lbl_lst if len(lbl_name.split('.'))>1]), ', расширения: ', *{lbl_name.split('.')[-1] for lbl_name in lbl_lst if len(lbl_name.split('.'))>1},']', sep='')
