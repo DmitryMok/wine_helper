@@ -356,3 +356,42 @@ def r(val):
   Function generate random integer [0:val]
   '''
   return int(np.random.random() * val)
+
+
+# добавлено 13.09.22
+# класс для работы с датасетом
+class DataSet:
+  '''
+  класс содержит пути к файлам изображений и разметки
+  выводит статистику: количество файлов, разрешения файлов
+  разбивает на train и val
+  '''
+  def __init__(self, img_dirs, lbl_dirs):
+    self.img_dirs = img_dirs  # !list of train/val/test dir
+    self.lbl_dirs = lbl_dirs
+
+    # os.path.join(img_dir, lbl_dir)
+
+    # self.img_lst = os.listdir(img_dir)
+    # self.lbl_lst = os.listdir(lbl_dir)
+
+  def get_stat(self):
+    print('Папки с изображениями:\n')
+    commonpath = os.path.commonpath(ds.img_dirs)
+    print(commonpath) # общая часть папок, чтобы отобразить структуру
+    # выводим информацию в каждой папке
+    for img_dir in self.img_dirs:
+      img_lst = os.listdir(img_dir)
+      print('  |')
+      print('  +-- ',os.path.relpath(img_dir, start=cpath), ' [кол-во файлов - ', 
+            len(img_lst), ', расширения: ', *{img_name.split('.')[-1] for img_name in img_lst if len(img_name.split('.'))>1},']', sep='')
+
+    print('\n\nПапки с файлами разметки:\n')
+    commonpath = os.path.commonpath(ds.lbl_dirs)
+    print(commonpath) # общая часть папок, чтобы отобразить структуру
+    # выводим информацию в каждой папке
+    for lbl_dir in self.lbl_dirs:
+      lbl_lst = os.listdir(lbl_dir)
+      print('  |')
+      print('  +-- ',os.path.relpath(img_dir, start=cpath), ' [кол-во файлов - ', 
+            len(lbl_lst), ', расширения: ', *{lbl_name.split('.')[-1] for lbl_name in lbl_lst if len(lbl_name.split('.'))>1},']', sep='')
