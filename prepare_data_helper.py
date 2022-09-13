@@ -383,7 +383,7 @@ class DataSet:
     for img_dir in self.img_dirs:
       img_lst = os.listdir(img_dir)
       print('  |')
-      print('  +-- ',os.path.relpath(img_dir, start=cpath), ' [кол-во файлов - ', 
+      print('  +-- ',os.path.relpath(img_dir, start=commonpath), ' [кол-во файлов - ', 
             len(img_lst), ', расширения: ', *{img_name.split('.')[-1] for img_name in img_lst if len(img_name.split('.'))>1},']', sep='')
 
     print('\n\nПапки с файлами разметки:\n')
@@ -393,5 +393,5 @@ class DataSet:
     for lbl_dir in self.lbl_dirs:
       lbl_lst = os.listdir(lbl_dir)
       print('  |')
-      print('  +-- ',os.path.relpath(img_dir, start=cpath), ' [кол-во файлов - ', 
+      print('  +-- ',os.path.relpath(img_dir, start=commonpath), ' [кол-во файлов - ', 
             len(lbl_lst), ', расширения: ', *{lbl_name.split('.')[-1] for lbl_name in lbl_lst if len(lbl_name.split('.'))>1},']', sep='')
